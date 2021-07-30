@@ -2,6 +2,10 @@ fn main() {
     println!("Hello, world!");
 }
 
+const GFX_BLANK: &str = "  ";
+const GFX_HEAD:  &str = "@@";
+const GFX_TAIL:  &str = "<>";
+
 enum Direction {
     UP,
     DOWN,
@@ -22,6 +26,10 @@ impl Direction {
 
 trait Growable {
     fn grow(&mut self);
+}
+
+trait Drawable {
+    fn draw(&self, screen: &mut Vec<Vec<&str>>);
 }
 
 struct Head {
@@ -48,6 +56,16 @@ impl Growable for Head {
         match &mut self.tail {
             Some(t) => t.grow(),
             None => self.tail = Some(Tail { x: self.x, y: self.y, tail: None }),
+        }
+    }
+}
+
+impl Drawable for Head {
+    fn draw(&self, screen: &mut Vec<Vec<&str>>) {
+        screen[self.y as usize][self.x as usize] = GFX_HEAD;
+
+        if let Some(tail) = &self.tail {
+            tail.draw(screen);
         }
     }
 }
@@ -79,15 +97,35 @@ impl Growable for Tail {
     }
 }
 
+impl Drawable for Tail {
+    fn draw(&self, screen: &mut Vec<Vec<&str>>) {
+        screen[self.y as usize][self.x as usize] = GFX_TAIL;
+
+        if let Some(tail) = &self.tail {
+            tail.draw(screen);
+        }
+    }
+}
+
 struct Board {
-    width: i32,
-    height: i32,
+    width: usize,
+    height: usize,
 
     snake: Head,
 }
 
 impl Board {
-    fn new(width: i32, height: i32) -> Board {
+    fn new(width: usize, height: usize) -> Board {
         Board { width, height, snake: Head { x: 0, y: 0, tail: None } }
     }
+}
+
+fn tick(board: &mut Board) {
+
+}
+
+fn render(board: &Board) {
+    let mut screen = vec![vec![GFX_BLANK; board.width as usize]; board.height];
+
+    board.snake.draw(&mut screen);
 }
