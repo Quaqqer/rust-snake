@@ -1,12 +1,28 @@
+use ncurses::*;
+use std::thread::sleep;
+use std::time::Duration;
+
 fn main() {
-    println!("Hello, world!");
+    initscr();
+    timeout(-1);
+
+    let mut board = Board::new(20, 20);
+
+    loop {
+        tick(&mut board);
+        render(&board);
+
+        sleep(Duration::from_millis(1000));
+    }
 }
 
 const GFX_BLANK: &str = "  ";
 const GFX_HEAD:  &str = "@@";
 const GFX_TAIL:  &str = "<>";
 
+#[derive(PartialEq, Eq)]
 enum Direction {
+    NONE,
     UP,
     DOWN,
     LEFT,
@@ -16,6 +32,7 @@ enum Direction {
 impl Direction {
     fn value(&self) -> (i32, i32) {
         match *self {
+            Direction::NONE  => ( 0,  0),
             Direction::DOWN  => ( 0,  1),
             Direction::UP    => ( 0, -1),
             Direction::LEFT  => (-1,  0),
@@ -121,11 +138,39 @@ impl Board {
 }
 
 fn tick(board: &mut Board) {
+    let mut dmove = Direction::NONE;
 
+    loop {
+        let c = getch();
+        if c == 1 { break };
+
+        let dir: Direction = match c {
+            KEY_UP    => Direction::UP,
+            KEY_DOWN  => Direction::DOWN,
+            KEY_LEFT  => Direction::LEFT,
+            KEY_RIGHT => Direction::RIGHT,
+            _         => Direction::NONE,
+        };
+
+        if dir != Direction::NONE {
+            dmove = dir;
+        }
+    }
+
+    board.snake.dmove(dmove);
 }
 
 fn render(board: &Board) {
     let mut screen = vec![vec![GFX_BLANK; board.width as usize]; board.height];
 
     board.snake.draw(&mut screen);
+
+    clear();
+
+    for line in screen.iter_mut() {
+        let l = line.join("") + "\n";
+        addstr(l.as_ref());
+    }
+
+    refresh();
 }
