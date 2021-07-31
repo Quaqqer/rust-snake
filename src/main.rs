@@ -15,15 +15,23 @@ fn main() {
 
     let mut board = Board::new((width/2 - 2) as usize, (height - 2) as usize);
 
+    let score: i32;
+
     loop {
-        let tr = tick(&mut board);
-        if tr == TickResult::EXIT { break; }
         render(&board);
 
-        sleep(Duration::from_millis(150));
+        sleep(Duration::from_millis(100));
+
+        let tr = tick(&mut board);
+        if let TickResult::EXIT(gr) = tr {
+            score = gr.score;
+            break;
+        }
     }
 
     endwin();
+
+    println!("Game over! Final score: {}", score);
 }
 
 #[derive(Clone)]
@@ -57,9 +65,14 @@ enum Direction {
 }
 
 #[derive(PartialEq, Eq)]
+struct GameResult {
+    score: i32,
+}
+
+#[derive(PartialEq, Eq)]
 enum TickResult {
     CONTINUE,
-    EXIT,
+    EXIT(GameResult),
 }
 
 impl Direction {
@@ -157,6 +170,14 @@ impl Tail {
 
         false
     }
+
+    fn add_to_last(&mut self, tail: Tail) {
+        if let Some(t) = &mut self.tail {
+            t.add_to_last(tail);
+        } else {
+            self.tail = Some(Box::new(tail));
+        }
+    }
 }
 
 impl Growable for Tail {
@@ -184,14 +205,29 @@ struct Board {
 
     snake: Head,
     fruit: Option<Fruit>,
+    score: i32,
 }
 
 impl Board {
     fn new(width: usize, height: usize) -> Board {
-        let mut b = Board { width, height, snake: Head { x: 0, y: 0, tail: None, dir: Direction::NONE }, fruit: None };
-        b.spawn_fruit();
+        let (cx, cy) = (width/2, height/2);
 
-        b
+        let mut snake = Head { x: (cx) as i32, y: cy as i32, dir: Direction::RIGHT, tail: None };
+        eprintln!("{}", snake.x);
+        for i in 0..3 {
+            let tail = Tail { x: cx as i32 - i - 1, y: cy as i32, tail: None };
+            eprintln!("{}", tail.x);
+
+            match &mut snake.tail {
+                Some(t) => { t.add_to_last(tail) },
+                None => { snake.tail = Some(tail) },
+            }
+        }
+
+        let mut board = Board { width, height, snake, fruit: None, score: 0 };
+        board.spawn_fruit();
+
+        board
     }
 
     fn contains_point(&self, x: i32, y: i32) -> bool {
@@ -227,7 +263,7 @@ fn tick(board: &mut Board) -> TickResult {
         let c = getch();
         if c == -1 { break };
 
-        if c == ('q' as i32) { return TickResult::EXIT };
+        if c == ('q' as i32) { return TickResult::EXIT(GameResult { score: board.score }) };
 
         let dir: Direction = match c {
             KEY_UP    => Direction::UP,
@@ -246,13 +282,13 @@ fn tick(board: &mut Board) -> TickResult {
 
     // If outside board
     if !board.contains_point(board.snake.x, board.snake.y) {
-        return TickResult::EXIT;
+        return TickResult::EXIT(GameResult { score: board.score });
     }
 
     // If collide with self
     let (snakex, snakey) = (board.snake.x, board.snake.y);
     if let Some(tail) = &board.snake.tail {
-        if tail.contains_point(snakex, snakey) { return TickResult::EXIT; }
+        if tail.contains_point(snakex, snakey) { return TickResult::EXIT(GameResult { score: board.score }); }
     }
 
     // If eat fruit
@@ -277,7 +313,7 @@ fn render(board: &Board) {
 
     clear();
 
-    for item in vec![Gfx::WALL; board.width + 2] { item.draw(); }
+    for _ in 0..board.width + 2 { Gfx::WALL.draw(); }
 
     for line in screen {
         Gfx::WALL.draw();
@@ -285,7 +321,7 @@ fn render(board: &Board) {
         Gfx::WALL.draw();
     }
 
-    for item in vec![Gfx::WALL; board.width + 2] { item.draw(); }
+    for _ in 0..board.width + 2 { Gfx::WALL.draw(); }
 
     refresh();
 }
