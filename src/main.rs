@@ -233,6 +233,12 @@ fn tick(board: &mut Board) -> TickResult {
         return TickResult::EXIT;
     }
 
+    // If collide with self
+    let (snakex, snakey) = (board.snake.x, board.snake.y);
+    if let Some(tail) = &board.snake.tail {
+        if tail.contains_point(snakex, snakey) { return TickResult::EXIT; }
+    }
+
     // If eat fruit
     if let Some(fruit) = &board.fruit {
         if board.snake.contains_point(fruit.x as i32, fruit.y as i32) {
