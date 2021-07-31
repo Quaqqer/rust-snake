@@ -9,9 +9,10 @@ fn main() {
     timeout(0);
     keypad(w, true);
     curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
-    start_color();
     let (mut width, mut height): (i32, i32) = (0, 0);
     getmaxyx(w, &mut height, &mut width);
+
+    Gfx::init();
 
     let mut board = Board::new((width/2 - 2) as usize, (height - 2) as usize);
 
@@ -47,11 +48,19 @@ impl Gfx {
     fn draw(&self) {
         match *self {
             Gfx::BLANK => { addstr("  "); },
-            Gfx::HEAD  => { addstr("@@"); },
-            Gfx::TAIL  => { addstr("<>"); },
+            Gfx::HEAD  => { attron(COLOR_PAIR(2)); addstr("@@"); attroff(COLOR_PAIR(2)); },
+            Gfx::TAIL  => { attron(COLOR_PAIR(2)); addstr("<>"); attroff(COLOR_PAIR(2)); },
             Gfx::WALL  => { addstr("::"); },
-            Gfx::FRUIT => { addstr("()"); },
+            Gfx::FRUIT => { attron(COLOR_PAIR(3)); addstr("()"); attroff(COLOR_PAIR(3)); },
         }
+    }
+
+    fn init() {
+        start_color();
+        init_pair(1, COLOR_WHITE, COLOR_BLACK);
+        init_pair(2, COLOR_GREEN, COLOR_BLACK);
+        init_pair(3, COLOR_RED  , COLOR_BLACK);
+        attron(COLOR_PAIR(1));
     }
 }
 
@@ -62,6 +71,18 @@ enum Direction {
     DOWN,
     LEFT,
     RIGHT,
+}
+
+impl Direction {
+    fn opposite(&self) -> Direction {
+        match *self {
+            Direction::NONE  => Direction::NONE,
+            Direction::UP    => Direction::DOWN,
+            Direction::DOWN  => Direction::UP,
+            Direction::LEFT  => Direction::RIGHT,
+            Direction::RIGHT => Direction::LEFT,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq)]
@@ -273,7 +294,7 @@ fn tick(board: &mut Board) -> TickResult {
             _         => Direction::NONE,
         };
 
-        if dir != Direction::NONE {
+        if dir != Direction::NONE && dir != board.snake.dir.opposite() {
             board.snake.dir = dir;
         }
     }
