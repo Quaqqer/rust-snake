@@ -48,7 +48,7 @@ impl Gfx {
     fn draw(&self) {
         match *self {
             Gfx::BLANK => { addstr("  "); },
-            Gfx::HEAD  => { attron(COLOR_PAIR(2)); addstr("@@"); attroff(COLOR_PAIR(2)); },
+            Gfx::HEAD  => { attron(COLOR_PAIR(1)); addstr("@@"); attroff(COLOR_PAIR(2)); },
             Gfx::TAIL  => { attron(COLOR_PAIR(2)); addstr("<>"); attroff(COLOR_PAIR(2)); },
             Gfx::WALL  => { addstr("::"); },
             Gfx::FRUIT => { attron(COLOR_PAIR(3)); addstr("()"); attroff(COLOR_PAIR(3)); },
