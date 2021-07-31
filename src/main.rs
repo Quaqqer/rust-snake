@@ -3,17 +3,21 @@ use std::thread::sleep;
 use std::time::Duration;
 
 fn main() {
-    initscr();
-    timeout(-1);
+    let w = initscr();
+    timeout(0);
+    keypad(w, true);
 
     let mut board = Board::new(20, 20);
 
     loop {
-        tick(&mut board);
+        let tr = tick(&mut board);
+        if tr == TickResult::EXIT { break; }
         render(&board);
 
-        sleep(Duration::from_millis(1000));
+        sleep(Duration::from_millis(300));
     }
+
+    endwin();
 }
 
 const GFX_BLANK: &str = "  ";
@@ -27,6 +31,12 @@ enum Direction {
     DOWN,
     LEFT,
     RIGHT,
+}
+
+#[derive(PartialEq, Eq)]
+enum TickResult {
+    CONTINUE,
+    EXIT,
 }
 
 impl Direction {
@@ -54,15 +64,16 @@ struct Head {
     y: i32,
 
     tail: Option<Tail>,
+    dir: Direction,
 }
 
 impl Head {
-    fn dmove(&mut self, dir: Direction) {
+    fn dmove(&mut self) {
         if let Some(tail) = &mut self.tail {
             tail.rmove(self.x, self.y);
         }
 
-        let (dx, dy) = dir.value();
+        let (dx, dy) = self.dir.value();
         self.x += dx;
         self.y += dy;
     }
@@ -133,16 +144,17 @@ struct Board {
 
 impl Board {
     fn new(width: usize, height: usize) -> Board {
-        Board { width, height, snake: Head { x: 0, y: 0, tail: None } }
+        Board { width, height, snake: Head { x: 0, y: 0, tail: None, dir: Direction::NONE } }
     }
 }
 
-fn tick(board: &mut Board) {
-    let mut dmove = Direction::NONE;
-
+fn tick(board: &mut Board) -> TickResult {
     loop {
         let c = getch();
-        if c == 1 { break };
+        if c == -1 { break };
+        println!("{}", c);
+
+        if c == ('q' as i32) { return TickResult::EXIT };
 
         let dir: Direction = match c {
             KEY_UP    => Direction::UP,
@@ -153,11 +165,13 @@ fn tick(board: &mut Board) {
         };
 
         if dir != Direction::NONE {
-            dmove = dir;
+            board.snake.dir = dir;
         }
     }
 
-    board.snake.dmove(dmove);
+    board.snake.dmove();
+
+    TickResult::CONTINUE
 }
 
 fn render(board: &Board) {
