@@ -5,6 +5,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 fn main() {
+    setlocale(LcCategory::ctype, "");
     let w = initscr();
     timeout(0);
     keypad(w, true);
@@ -317,6 +318,7 @@ fn tick(board: &mut Board) -> TickResult {
         if board.snake.contains_point(fruit.x as i32, fruit.y as i32) {
             board.spawn_fruit();
             board.snake.grow();
+            board.score += 1;
         }
     }
 
