@@ -9,6 +9,7 @@ fn main() {
     timeout(0);
     keypad(w, true);
     curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
+    start_color();
     let (mut width, mut height): (i32, i32) = (0, 0);
     getmaxyx(w, &mut height, &mut width);
 
@@ -25,11 +26,26 @@ fn main() {
     endwin();
 }
 
-const GFX_BLANK: &str = "  ";
-const GFX_HEAD:  &str = "@@";
-const GFX_TAIL:  &str = "<>";
-const GFX_WALL:  &str = "::";
-const GFX_FRUIT: &str = "()";
+#[derive(Clone)]
+enum Gfx {
+    BLANK,
+    HEAD,
+    TAIL,
+    WALL,
+    FRUIT,
+}
+
+impl Gfx {
+    fn draw(&self) {
+        match *self {
+            Gfx::BLANK => { addstr("  "); },
+            Gfx::HEAD  => { addstr("@@"); },
+            Gfx::TAIL  => { addstr("<>"); },
+            Gfx::WALL  => { addstr("::"); },
+            Gfx::FRUIT => { addstr("()"); },
+        }
+    }
+}
 
 #[derive(PartialEq, Eq)]
 enum Direction {
@@ -63,7 +79,7 @@ trait Growable {
 }
 
 trait Drawable {
-    fn draw(&self, screen: &mut Vec<Vec<&str>>);
+    fn draw(&self, screen: &mut Vec<Vec<Gfx>>);
 }
 
 struct Head {
@@ -106,8 +122,8 @@ impl Growable for Head {
 }
 
 impl Drawable for Head {
-    fn draw(&self, screen: &mut Vec<Vec<&str>>) {
-        screen[self.y as usize][self.x as usize] = GFX_HEAD;
+    fn draw(&self, screen: &mut Vec<Vec<Gfx>>) {
+        screen[self.y as usize][self.x as usize] = Gfx::HEAD;
 
         if let Some(tail) = &self.tail {
             tail.draw(screen);
@@ -153,8 +169,8 @@ impl Growable for Tail {
 }
 
 impl Drawable for Tail {
-    fn draw(&self, screen: &mut Vec<Vec<&str>>) {
-        screen[self.y as usize][self.x as usize] = GFX_TAIL;
+    fn draw(&self, screen: &mut Vec<Vec<Gfx>>) {
+        screen[self.y as usize][self.x as usize] = Gfx::TAIL;
 
         if let Some(tail) = &self.tail {
             tail.draw(screen);
@@ -201,8 +217,8 @@ struct Fruit {
 }
 
 impl Drawable for Fruit {
-    fn draw(&self, screen: &mut Vec<Vec<&str>>) {
-        screen[self.y as usize][self.x as usize] = GFX_FRUIT;
+    fn draw(&self, screen: &mut Vec<Vec<Gfx>>) {
+        screen[self.y as usize][self.x as usize] = Gfx::FRUIT;
     }
 }
 
@@ -251,7 +267,7 @@ fn tick(board: &mut Board) -> TickResult {
 }
 
 fn render(board: &Board) {
-    let mut screen = vec![vec![GFX_BLANK; board.width as usize]; board.height];
+    let mut screen = vec![vec![Gfx::BLANK; board.width as usize]; board.height];
 
     board.snake.draw(&mut screen);
 
@@ -261,12 +277,15 @@ fn render(board: &Board) {
 
     clear();
 
-    addstr((vec![GFX_WALL; board.width + 2].join("")).as_ref());
-    for line in screen.iter_mut() {
-        let l = String::from(GFX_WALL) + &line.join("") + GFX_WALL;
-        addstr(l.as_ref());
+    for item in vec![Gfx::WALL; board.width + 2] { item.draw(); }
+
+    for line in screen {
+        Gfx::WALL.draw();
+        for item in line { item.draw(); }
+        Gfx::WALL.draw();
     }
-    addstr((vec![GFX_WALL; board.width + 2].join("")).as_ref());
+
+    for item in vec![Gfx::WALL; board.width + 2] { item.draw(); }
 
     refresh();
 }
