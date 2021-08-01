@@ -26,7 +26,7 @@ impl Direction {
 
 pub struct Snake {
     pub pos: Point2D,
-    tail: std::collections::LinkedList<Point2D>,
+    pub tail: std::collections::LinkedList<Point2D>,
 
     pub queued_grow: u32,
     pub dir: Direction,
@@ -40,6 +40,8 @@ impl Snake {
     }
 
     pub fn tick(&mut self) {
+        if self.dir == Direction::None { return; }
+
         if self.queued_grow == 0 {
             self.tail.pop_back();
         } else {

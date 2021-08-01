@@ -4,5 +4,6 @@ pub mod gamestate;
 pub mod ui;
 
 fn main() {
-    println!("Hello, world!");
+    let mut ui = ui::Ui::new();
+    ui.start();
 }
