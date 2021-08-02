@@ -20,23 +20,25 @@ impl Gfx {
     fn init() {
         start_color();
         init_pair(1, COLOR_WHITE, COLOR_BLACK);
-        init_pair(2, COLOR_GREEN, COLOR_BLACK);
-        init_pair(3, COLOR_RED  , COLOR_BLACK);
+        init_pair(2, COLOR_BLACK, COLOR_GREEN);
+        init_pair(3, COLOR_YELLOW, COLOR_GREEN);
+        init_pair(4, COLOR_WHITE, COLOR_RED);
+        init_pair(5, COLOR_WHITE, COLOR_BLACK | 0b1000);
         attron(COLOR_PAIR(1));
     }
 
     fn draw(&self) {
         match self {
-            Head  => { addstr("@@"); },
-            Tail  => { attron(COLOR_PAIR(2)); addstr("<>"); attroff(COLOR_PAIR(2)); },
-            Fruit => { attron(COLOR_PAIR(3)); addstr("()"); attroff(COLOR_PAIR(3)); },
-            Wall  => { addstr("::"); },
+            Head  => { attron(COLOR_PAIR(2)); addstr("@@"); attroff(COLOR_PAIR(2));},
+            Tail  => { attron(COLOR_PAIR(3)); addstr("ZZ"); attroff(COLOR_PAIR(3)); },
+            Fruit => { attron(COLOR_PAIR(4)); addstr("()"); attroff(COLOR_PAIR(4)); },
+            Wall  => { attron(COLOR_PAIR(5)); addstr("::"); attroff(COLOR_PAIR(5)); },
             Space => { addstr("  "); },
         }
     }
 
     fn render(state: &GameState) {
-        clear();
+        erase();
 
         let mut display = vec![vec![Gfx::Space; state.width as usize]; state.height as usize];
 
