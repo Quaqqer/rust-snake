@@ -17,11 +17,19 @@ enum Gfx {
 impl Gfx {
     const SPRITE_WIDTH: u32 = 2;
 
+    fn init() {
+        start_color();
+        init_pair(1, COLOR_WHITE, COLOR_BLACK);
+        init_pair(2, COLOR_GREEN, COLOR_BLACK);
+        init_pair(3, COLOR_RED  , COLOR_BLACK);
+        attron(COLOR_PAIR(1));
+    }
+
     fn draw(&self) {
         match self {
             Head  => { addstr("@@"); },
-            Tail  => { addstr("<>"); },
-            Fruit => { addstr("()"); },
+            Tail  => { attron(COLOR_PAIR(2)); addstr("<>"); attroff(COLOR_PAIR(2)); },
+            Fruit => { attron(COLOR_PAIR(3)); addstr("()"); attroff(COLOR_PAIR(3)); },
             Wall  => { addstr("::"); },
             Space => { addstr("  "); },
         }
@@ -71,6 +79,8 @@ impl Ui {
         keypad(win, true);
         curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
 
+        Gfx::init();
+
         win
     }
 
@@ -90,8 +100,6 @@ impl Ui {
     }
 
     pub fn start(&mut self) {
-        Ui::init();
-
         let exit_score: i32;
 
         loop {
