@@ -37,7 +37,7 @@ impl Gfx {
         }
     }
 
-    fn render(state: &GameState) {
+    fn render(state: &GameState, line_rest: u32) {
         erase();
 
         let mut display = vec![vec![Gfx::Space; state.width as usize]; state.height as usize];
@@ -55,12 +55,14 @@ impl Gfx {
         }
 
         for _ in 0..state.width + 2 { Gfx::Wall.draw() }
+        if line_rest > 0 { addstr("\n"); }
         for line in display {
             Gfx::Wall.draw();
             for item in line {
                 item.draw();
             }
             Gfx::Wall.draw();
+            if line_rest > 0 { addstr("\n"); }
         }
         for _ in 0..state.width + 2 { Gfx::Wall.draw() }
 
@@ -70,6 +72,7 @@ impl Gfx {
 
 pub struct Ui {
     window: WINDOW,
+    line_rest: u32,
     state: GameState,
 }
 
@@ -98,14 +101,16 @@ impl Ui {
 
         let gs = GameState::new(width as u32 / Gfx::SPRITE_WIDTH - 2, height as u32 - 2);
 
-        Ui { window: win, state: gs }
+        let line_rest = width as u32 % Gfx::SPRITE_WIDTH;
+
+        Ui { window: win, state: gs, line_rest }
     }
 
     pub fn start(&mut self) {
         let exit_score: i32;
 
         loop {
-            Gfx::render(&self.state);
+            Gfx::render(&self.state, self.line_rest);
             let tr = self.state.tick();
 
             sleep(Duration::from_millis(100));
