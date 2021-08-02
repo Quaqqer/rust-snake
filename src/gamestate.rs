@@ -32,7 +32,7 @@ impl GameState {
 
             let p = Point2D::new(fx, fy);
 
-            if self.snake.contains_point(p) {
+            if !self.snake.contains_point(p) {
                 return p;
             }
         }
@@ -40,6 +40,9 @@ impl GameState {
 
     pub fn new(width: u32, height: u32) -> GameState {
         let snake = Snake::new(width, height, 4);
-        GameState { width, height, snake, fruit: None }
+        let mut gs = GameState { width, height, snake, fruit: None };
+        gs.fruit = Some(gs.gen_fruit());
+
+        gs
     }
 }
