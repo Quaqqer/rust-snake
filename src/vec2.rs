@@ -11,6 +11,14 @@ impl Vec2 {
     pub fn new(x: i32, y: i32) -> Vec2 {
         Vec2 { x, y }
     }
+
+    pub fn length(&self) -> f32 {
+        ((self.x.pow(2) + self.y.pow(2)) as f32).sqrt()
+    }
+
+    pub fn dist(self, rhs: Vec2) -> f32 {
+        (self - rhs).length()
+    }
 }
 
 impl core::ops::Add for Vec2 {

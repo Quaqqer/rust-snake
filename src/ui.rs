@@ -17,13 +17,17 @@ enum Gfx {
 impl Gfx {
     const SPRITE_WIDTH: u32 = 2;
 
+    fn brighten_color(color: i16) -> i16 {
+        color | 0b1000
+    }
+
     fn init() {
         start_color();
         init_pair(1, COLOR_WHITE, COLOR_BLACK);
         init_pair(2, COLOR_BLACK, COLOR_GREEN);
         init_pair(3, COLOR_YELLOW, COLOR_GREEN);
         init_pair(4, COLOR_WHITE, COLOR_RED);
-        init_pair(5, COLOR_WHITE, COLOR_BLACK | 0b1000);
+        init_pair(5, COLOR_WHITE, Gfx::brighten_color(COLOR_BLACK));
         attron(COLOR_PAIR(1));
     }
 
