@@ -71,4 +71,10 @@ impl Snake {
 
         false
     }
+
+    pub fn collides_tail(&self) -> bool {
+        if self.tail.contains(&self.pos) { return true; }
+
+        false
+    }
 }

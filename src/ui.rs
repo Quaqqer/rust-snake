@@ -92,6 +92,8 @@ impl Ui {
     pub fn start(&mut self) {
         Ui::init();
 
+        let exit_score: i32;
+
         loop {
             Gfx::render(&self.state);
             let tr = self.state.tick();
@@ -118,11 +120,14 @@ impl Ui {
             }
             if let Some(dir) = dir { self.state.snake.dir = dir }
 
-            if let TickResult::Exit(_score) = tr {
+            if let TickResult::Exit(score) = tr {
+                exit_score = score;
                 break;
             }
         }
 
         Ui::deinit();
+
+        println!("Game over! Score: {}", exit_score);
     }
 }
