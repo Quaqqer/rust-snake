@@ -11,7 +11,7 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn vec(&self) -> Vec2 {
+    pub fn vec(&self) -> Vec2 {
         use Direction::*;
 
         match self {
@@ -20,6 +20,16 @@ impl Direction {
             Left  => Vec2 { x: -1, y:  0 },
             Right => Vec2 { x:  1, y:  0 },
             None  => Vec2 { x:  0, y:  0 },
+        }
+    }
+
+    pub fn opposite(&self) -> Self {
+        match self {
+            Direction::Up    => Direction::Down,
+            Direction::Down  => Direction::Up,
+            Direction::Left  => Direction::Right,
+            Direction::Right => Direction::Left,
+            Direction::None  => Direction::None,
         }
     }
 }

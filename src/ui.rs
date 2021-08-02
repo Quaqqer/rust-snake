@@ -3,7 +3,7 @@ use Gfx::*;
 use std::thread::sleep;
 use std::time::Duration;
 
-use crate::gamestate::{GameState, TickResult};
+use crate::{gamestate::{GameState, TickResult}, snake::Direction};
 
 #[derive(Clone, Copy)]
 enum Gfx {
@@ -44,11 +44,15 @@ impl Gfx {
             display[fruit.y as usize][fruit.x as usize] = Gfx::Fruit;
         }
 
+        for _ in 0..state.width + 2 { Gfx::Wall.draw() }
         for line in display {
+            Gfx::Wall.draw();
             for item in line {
                 item.draw();
             }
+            Gfx::Wall.draw();
         }
+        for _ in 0..state.width + 2 { Gfx::Wall.draw() }
 
         refresh();
     }
@@ -93,6 +97,26 @@ impl Ui {
             let tr = self.state.tick();
 
             sleep(Duration::from_millis(100));
+
+            let mut dir: Option<Direction> = None;
+            loop {
+                let c = getch();
+                if c == -1 { break; }
+                if c == ('q' as i32) { return; }
+
+                let d: Option<Direction> = match c {
+                    KEY_UP    => Some(Direction::Up),
+                    KEY_DOWN  => Some(Direction::Down),
+                    KEY_LEFT  => Some(Direction::Left),
+                    KEY_RIGHT => Some(Direction::Right),
+                    _ => None,
+                };
+
+                if d.is_some() && d.unwrap().opposite() != self.state.snake.dir {
+                    dir = d;
+                }
+            }
+            if let Some(dir) = dir { self.state.snake.dir = dir }
 
             if let TickResult::Exit(_score) = tr {
                 break;
